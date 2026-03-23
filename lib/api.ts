@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
         const token = localStorage.getItem('token');
         if (token) {
@@ -15,8 +15,20 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-    (response) => response,
-    (error) => {
+    (response: AxiosResponse) => {
+        if (response.status === 401) {
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            }
+            // Reject with an object that resembles an Axios error
+            const error = new axios.AxiosError('Unauthorized');
+            error.response = response;
+            return Promise.reject(error);
+        }
+        return response;
+    },
+    (error: AxiosError) => {
         if (error.response?.status === 401) {
             if (typeof window !== 'undefined') {
                 localStorage.removeItem('token');
@@ -34,6 +46,7 @@ export interface Condominio {
     id: number;
     nome: string;
     cnpj: string;
+    userCount?: number;
 }
 
 export interface SearchResponse {
@@ -50,21 +63,22 @@ export interface PDFResponse {
 // Report service functions
 export const reportsService = {
     async searchCondominio(searchTerm: string): Promise<Condominio[]> {
-        const response = await api.post('/reports/preview', { searchTerm }, {
-            responseType: 'json',
+        const response = await api.post('/reports/preview', { searchTerm, searchOnly: true }, {
+            responseType: 'blob', // read as blob to detect content-type first
+            validateStatus: (s) => s < 500,
         });
 
-        // If response is JSON with multiple results
-        if (response.data && Array.isArray(response.data)) {
-            return response.data;
+        const contentType = response.headers['content-type'] || '';
+        if (contentType.includes('application/json')) {
+            const text = await (response.data as Blob).text();
+            const parsed = JSON.parse(text);
+            return Array.isArray(parsed) ? parsed : [];
         }
-
-        // If single result or direct PDF, return empty to trigger PDF flow
         return [];
     },
 
-    async generateReport(condominioId: number): Promise<{ blob: Blob; filename: string }> {
-        const response = await api.post('/reports/preview', { condominioId }, {
+    async generateReport(condominioId: number, userName?: string): Promise<{ blob: Blob; filename: string }> {
+        const response = await api.post('/reports/preview', { condominioId, userName }, {
             responseType: 'blob',
         });
 
@@ -85,10 +99,10 @@ export const reportsService = {
         };
     },
 
-    async searchAndGenerate(searchTerm: string): Promise<{ blob: Blob; filename: string } | Condominio[]> {
-        const response = await api.post('/reports/preview', { searchTerm }, {
+    async searchAndGenerate(searchTerm: string, userName?: string): Promise<{ blob: Blob; filename: string } | Condominio[]> {
+        const response = await api.post('/reports/preview', { searchTerm, userName }, {
             responseType: 'blob',
-            validateStatus: (status) => status < 500,
+            validateStatus: (status: number) => status < 500,
         });
 
         // Check if response is JSON (multiple results)
@@ -114,6 +128,34 @@ export const reportsService = {
         return {
             blob: response.data,
             filename,
+        };
+    },
+
+    async generateRfBackupReport(params: {
+        condominioId: number;
+        nomeCondominio: string;
+        dataInicio: string; // DD/MM/YYYY
+        dataFim: string;    // DD/MM/YYYY
+        horaInicio?: string;
+        horaFim?: string;
+        userName?: string;
+    }): Promise<{ blob: Blob; filename: string }> {
+        const response = await api.post('/reports/rf-backup', {
+            condominioId: params.condominioId,
+            nomeCondominio: params.nomeCondominio,
+            dataInicio: params.dataInicio,
+            dataFim: params.dataFim,
+            horaInicio: params.horaInicio,
+            horaFim: params.horaFim,
+            userName: params.userName,
+        }, {
+            responseType: 'blob',
+        });
+
+        const sanitized = params.nomeCondominio.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+        return {
+            blob: response.data,
+            filename: `acesso_rf_${sanitized}.pdf`,
         };
     },
 };

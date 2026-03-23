@@ -49,7 +49,9 @@ export function CondominioSelector({ condominios, onSelect, isLoading, onBack }:
                                         <Building2 className="h-5 w-5 text-white" />
                                     </div>
                                     <div>
-                                        <CardTitle className="text-base">{condominio.nome}</CardTitle>
+                                        <CardTitle className="text-base">
+                                            {condominio.nome} {condominio.userCount !== undefined ? `(${condominio.userCount})` : ''}
+                                        </CardTitle>
                                         <CardDescription className="text-sm">
                                             CNPJ: {condominio.cnpj}
                                         </CardDescription>

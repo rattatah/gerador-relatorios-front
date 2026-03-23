@@ -229,37 +229,34 @@ Este projeto requer o backend rodando. Certifique-se de que a API está rodando 
 
 ### Scripts de Automação
 
-#### `./dev.sh` ⭐ Recomendado para desenvolvimento
+Esses dois scripts existem para te dar duas opções de como rodar o projeto no seu ambiente de desenvolvimento local. A diferença principal entre eles é a **utilização ou não do Docker**.
 
-Script completo que prepara e inicia o ambiente de desenvolvimento local:
+#### 1. `./dev.sh` (Rodando direto na sua máquina) ⭐ Recomendado
 
-```bash
-./dev.sh
-```
+Este script roda o projeto **SEM** Docker, utilizando o Node.js instalado diretamente no seu computador (host).
 
-**Ações executadas:**
-1. Para containers Docker (se estiverem rodando)
-2. Remove `node_modules` e `.next` antigos
-3. Instala dependências com `npm ci`
-4. Verifica/cria arquivo `.env.local`
-5. Inicia servidor de desenvolvimento (`npm run dev`)
+**O que ele faz:**
+- Para qualquer container Docker do projeto que esteja rodando (evitando conflitos de porta).
+- Apaga pastas antigas (`node_modules` e `.next`) para evitar caches problemáticos.
+- Instala todas as dependências rodando `npm ci` na sua máquina.
+- Verifica se existe um arquivo `.env.local` e o cria a partir do `.env.example` se necessário.
+- Inicia o servidor do Next.js diretamente executando `npm run dev`.
 
-**Quando usar:** Sempre que quiser começar a desenvolver do zero ou resetar o ambiente.
+**Quando usar:** Quando preferir rodar tudo direto no Node.js do seu computador, de forma mais rápida e com melhor integração de hot-reload.
 
-#### `./docker-dev.sh` - Desenvolvimento com Docker
+#### 2. `./docker-dev.sh` (Rodando isolado em Container)
 
-Script para desenvolvimento usando Docker com hot reload:
+Este script roda o projeto **COM** Docker, encapsulando o ambiente.
 
-```bash
-./docker-dev.sh
-```
+**O que ele faz:**
+- Limpa o ambiente Docker (para e remove containers antigos, networks e volumes).
+- Verifica e cria o `.env.local` se necessário.
+- Instala as dependências **dentro de um container Docker**.
+- Sobe a aplicação em modo de desenvolvimento usando `docker compose --profile dev up frontend-dev`.
 
-**Ações executadas:**
-1. Para e remove containers/volumes antigos
-2. Instala dependências no container
-3. Inicia servidor em modo desenvolvimento com Docker
+**Quando usar:** Quando quiser garantir que o seu ambiente (versão do Node, SO, etc.) seja idêntico ao de qualquer outro desenvolvedor da equipe, rodando a aplicação totalmente isolada.
 
-**Quando usar:** Se você preferir desenvolver usando Docker, mas esteja ciente que pode ter problemas com variáveis de ambiente.
+> ⚠️ **Nota sobre o `./docker-dev.sh`:** As variáveis de ambiente do `.env.local` funcionam apenas no browser (client-side). Se fizer alterações de URL da API, você precisará reiniciar o script.
 
 ### Scripts NPM
 

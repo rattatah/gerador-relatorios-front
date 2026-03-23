@@ -38,10 +38,15 @@ export default function LoginPage() {
             const response = await api.post('/auth/signin', data);
             const { accessToken } = response.data;
             login(accessToken);
-        } catch (error: any) {
+        } catch (error) {
             console.error(error);
-            const message = error.response?.data?.message || 'Erro ao realizar login. Verifique suas credenciais.';
-            toast.error(message);
+            let message = 'Erro ao realizar login. Verifique suas credenciais.';
+            import('axios').then(axios => {
+                if (axios.default.isAxiosError(error) && error.response?.data?.message) {
+                    message = error.response.data.message;
+                }
+                toast.error(message);
+            });
         } finally {
             setIsLoading(false);
         }

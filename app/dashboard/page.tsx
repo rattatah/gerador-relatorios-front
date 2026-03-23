@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, LogOut, Plus } from 'lucide-react';
+import { FileText, LogOut, Radio } from 'lucide-react';
 import { ReportDialog } from '@/components/ReportDialog';
 
 export default function DashboardPage() {
-    const { logout } = useAuth();
+    const { logout, userName } = useAuth();
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+    const [isRfDialogOpen, setIsRfDialogOpen] = useState(false);
 
     const solutions = [
         {
@@ -21,13 +22,13 @@ export default function DashboardPage() {
             onClick: () => setIsReportDialogOpen(true),
         },
         {
-            id: 'future-1',
-            title: 'Nova Solução',
-            description: 'Em breve - Novas funcionalidades',
-            icon: Plus,
-            gradient: 'from-orange-400 to-orange-500',
-            onClick: () => { },
-            disabled: true,
+            id: 'rf-backup-report',
+            title: 'Relatório Acesso Controle RF',
+            description: 'Gere relatórios de acesso por controle RF a partir dos backups CSV',
+            icon: Radio,
+            gradient: 'from-blue-500 to-blue-600',
+            onClick: () => setIsRfDialogOpen(true),
+            disabled: false,
         },
     ];
 
@@ -56,7 +57,7 @@ export default function DashboardPage() {
             {/* Main Content */}
             <main className="container mx-auto px-4 py-8">
                 <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <h2 className="text-3xl font-bold mb-2">Bem-vindo!</h2>
+                    <h2 className="text-3xl font-bold mb-2">Bem-vindo, {userName}!</h2>
                     <p className="text-muted-foreground">
                         Selecione uma solução abaixo para começar
                     </p>
@@ -92,7 +93,9 @@ export default function DashboardPage() {
                                 <Button
                                     variant={solution.disabled ? 'outline' : 'default'}
                                     className={`w-full ${!solution.disabled &&
-                                        'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800'
+                                        (solution.id === 'rf-backup-report'
+                                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+                                            : 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800')
                                         }`}
                                     disabled={solution.disabled}
                                 >
@@ -104,10 +107,18 @@ export default function DashboardPage() {
                 </div>
             </main>
 
-            {/* Report Dialog */}
+            {/* Moradores Dialog */}
             <ReportDialog
                 open={isReportDialogOpen}
                 onOpenChange={setIsReportDialogOpen}
+                initialType="MORADORES"
+            />
+
+            {/* RF Backup Dialog */}
+            <ReportDialog
+                open={isRfDialogOpen}
+                onOpenChange={setIsRfDialogOpen}
+                initialType="ACESSO_RF_BACKUP"
             />
         </div>
     );
