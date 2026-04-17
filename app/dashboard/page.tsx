@@ -4,30 +4,21 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, LogOut, Plus } from 'lucide-react';
+import { FileText, LogOut } from 'lucide-react';
 import { ReportDialog } from '@/components/ReportDialog';
 
 export default function DashboardPage() {
-    const { logout } = useAuth();
+    const { logout, userName } = useAuth();
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
     const solutions = [
         {
-            id: 'condominio-report',
-            title: 'Relatório de Condomínio',
-            description: 'Gere relatórios detalhados de moradores por condomínio',
+            id: 'report-generator',
+            title: 'Gerador de Relatórios',
+            description: 'Selecione e gere relatórios de Moradores ou Acesso Controle RF',
             icon: FileText,
             gradient: 'from-orange-500 to-orange-600',
             onClick: () => setIsReportDialogOpen(true),
-        },
-        {
-            id: 'future-1',
-            title: 'Nova Solução',
-            description: 'Em breve - Novas funcionalidades',
-            icon: Plus,
-            gradient: 'from-orange-400 to-orange-500',
-            onClick: () => { },
-            disabled: true,
         },
     ];
 
@@ -56,26 +47,22 @@ export default function DashboardPage() {
             {/* Main Content */}
             <main className="container mx-auto px-4 py-8">
                 <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <h2 className="text-3xl font-bold mb-2">Bem-vindo!</h2>
+                    <h2 className="text-3xl font-bold mb-2">Bem-vindo, {userName}!</h2>
                     <p className="text-muted-foreground">
                         Selecione uma solução abaixo para começar
                     </p>
                 </div>
 
                 {/* Solutions Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="flex justify-center md:justify-start">
                     {solutions.map((solution, index) => (
                         <Card
                             key={solution.id}
-                            className={`group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-t-4 animate-in fade-in slide-in-from-bottom-8 ${solution.disabled
-                                ? 'opacity-60 cursor-not-allowed'
-                                : 'hover:border-t-8'
-                                }`}
+                            className="group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-t-4 hover:border-t-8 animate-in fade-in slide-in-from-bottom-8 max-w-md w-full"
                             style={{
                                 animationDelay: `${index * 100}ms`,
-                                borderTopColor: solution.disabled ? '#ccc' : undefined,
                             }}
-                            onClick={solution.disabled ? undefined : solution.onClick}
+                            onClick={solution.onClick}
                         >
                             <CardHeader>
                                 <div
@@ -90,13 +77,10 @@ export default function DashboardPage() {
                             </CardHeader>
                             <CardContent>
                                 <Button
-                                    variant={solution.disabled ? 'outline' : 'default'}
-                                    className={`w-full ${!solution.disabled &&
-                                        'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800'
-                                        }`}
-                                    disabled={solution.disabled}
+                                    variant="default"
+                                    className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800"
                                 >
-                                    {solution.disabled ? 'Em Breve' : 'Acessar'}
+                                    Acessar
                                 </Button>
                             </CardContent>
                         </Card>
